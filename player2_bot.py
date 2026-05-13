@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-SHUVO AI OFFICIAL — Telegram Bot
-Powered by SHUVO AI OFFICIAL
+SHUVO AI BOT — Telegram Bot
+Powered by SHUVO
 Features: AI Image, Music, Video, Sprite, 3D generation
 """
 
@@ -25,10 +25,16 @@ PLAYER2_API_KEY = "p2_rKAe-A7wBgHG_XkMWMkhiA"
 MCP_URL         = "https://api.player2.game/api/v1/mcp"
 ADMIN_ID        = 8600328303
 
+
 HEADERS_BASE = {
     "Authorization": f"Bearer {PLAYER2_API_KEY}",
     "Content-Type": "application/json",
 }
+
+# Emoji constants (avoids f-string encoding issues on Python ≤ 3.11)
+CROSS   = "❌"
+WAIT    = "⏳"
+CHECK   = "✅"
 
 # ─────────────────────────────────────────────
 # RANDOM TAGLINES — changes every /start
@@ -147,7 +153,7 @@ async def _send_audio_robust(context: ContextTypes.DEFAULT_TYPE,
                               chat_id: int, url: str, caption: str):
     """
     Try send_audio via URL → download & resend → fallback to send_document.
-    SHUVO AI OFFICIAL audio URL handling.
+    Audio URLs sometimes need special handling.
     """
     # Attempt 1: direct URL
     try:
@@ -224,7 +230,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "📦  3D Model Builder \\(GLB\\)\n"
         "✏️  AI Image Editor\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-        "🌐 *Powered by SHUVO AI OFFICIAL*\n\n"
+        "🌐 Powered by SHUVO\n\n"
         "⬇️ *Tap a feature to begin\\!*"
     )
 
@@ -333,7 +339,7 @@ def _start_msg():
         "📦  3D Model Builder \\(GLB\\)\n"
         "✏️  AI Image Editor\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-        "🌐 *Powered by SHUVO AI OFFICIAL*\n\n"
+        "🌐 Powered by SHUVO\n\n"
         "⬇️ *Tap a feature to begin\\!*"
     )
 
@@ -386,7 +392,7 @@ async def cmd_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
             url = result.get("image_url") or result.get("url") or ""
             if url:
                 await msg.delete()
-                caption = f"🌈 *Image Generated*\n\n📝 `{esc(prompt)}`\n\n_Powered by SHUVO AI OFFICIAL_"
+                caption = f"🌈 *Image Generated*\n\n📝 `{esc(prompt)}`\n\n_Powered by SHUVO_"
                 await context.bot.send_photo(
                     chat_id=update.effective_chat.id,
                     photo=url, caption=caption,
@@ -394,9 +400,9 @@ async def cmd_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
             else:
                 err = result.get("error") or result.get("raw") or str(result)
-                await msg.edit_text(f"❌ Failed: `{esc(str(err)[:200])}`", parse_mode=ParseMode.MARKDOWN_V2)
+                await msg.edit_text(f"{CROSS} Failed: `{esc(str(err)[:200])}`", parse_mode=ParseMode.MARKDOWN_V2)
         except Exception as e:
-            await msg.edit_text(f"❌ Error: `{esc(str(e)[:200])}`", parse_mode=ParseMode.MARKDOWN_V2)
+            await msg.edit_text(f"{CROSS} Error: `{esc(str(e)[:200])}`", parse_mode=ParseMode.MARKDOWN_V2)
 
 
 # ─────────────────────────────────────────────
@@ -426,7 +432,7 @@ async def cmd_music(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode=ParseMode.MARKDOWN_V2
     )
 
-    caption = f"🎧 *Music Generated*\n\n📝 `{esc(prompt)}`\n⏱ {duration}s\n\n_Powered by SHUVO AI OFFICIAL_"
+    caption = f"🎧 *Music Generated*\n\n📝 `{esc(prompt)}`\n⏱ {duration}s\n\n_Powered by SHUVO_"
 
     async with httpx.AsyncClient() as client:
         session_id = await mcp_init(client)
@@ -462,7 +468,7 @@ async def cmd_music(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 # Show raw for debugging
                 err = result.get("error") or result.get("message") or result.get("raw") or str(result)
                 await msg.edit_text(
-                    f"❌ Music API error:\n`{esc(str(err)[:300])}`",
+                    f"{CROSS} Music API error:\n`{esc(str(err)[:300])}`",
                     parse_mode=ParseMode.MARKDOWN_V2
                 )
                 return
@@ -486,22 +492,22 @@ async def cmd_music(update: Update, context: ContextTypes.DEFAULT_TYPE):
             elif status == "failed":
                 err = done.get("error") or done.get("message") or "Unknown failure"
                 await msg.edit_text(
-                    f"❌ Generation failed: `{esc(str(err)[:200])}`",
+                    f"{CROSS} Generation failed: `{esc(str(err)[:200])}`",
                     parse_mode=ParseMode.MARKDOWN_V2
                 )
             elif status == "timeout":
                 await msg.edit_text(
-                    "⏳ Timed out\\. SHUVO AI servers might be busy — try again\\!",
+                    "⏳ Timed out\\. Servers might be busy — try again\\!",
                     parse_mode=ParseMode.MARKDOWN_V2
                 )
             else:
                 await msg.edit_text(
-                    f"⏳ Status: `{esc(status)}`\nDebug: `{esc(str(done)[:150])}`",
+                    f"{WAIT} Status: `{esc(status)}`\nDebug: `{esc(str(done)[:150])}`",
                     parse_mode=ParseMode.MARKDOWN_V2
                 )
 
         except Exception as e:
-            await msg.edit_text(f"❌ Error: `{esc(str(e)[:200])}`", parse_mode=ParseMode.MARKDOWN_V2)
+            await msg.edit_text(f"{CROSS} Error: `{esc(str(e)[:200])}`", parse_mode=ParseMode.MARKDOWN_V2)
 
 
 # ─────────────────────────────────────────────
@@ -532,7 +538,7 @@ async def cmd_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
             job_id = result.get("job_id") or result.get("id") or result.get("task_id") or ""
             if not job_id:
                 err = result.get("error") or str(result)
-                await msg.edit_text(f"❌ Failed: `{esc(str(err)[:200])}`", parse_mode=ParseMode.MARKDOWN_V2)
+                await msg.edit_text(f"{CROSS} Failed: `{esc(str(err)[:200])}`", parse_mode=ParseMode.MARKDOWN_V2)
                 return
 
             await msg.edit_text("🎞️ Video generating\\.\\.\\. Polling status\\.", parse_mode=ParseMode.MARKDOWN_V2)
@@ -542,7 +548,7 @@ async def cmd_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
             video_url = done.get("video_url") or done.get("url") or done.get("output_url") or ""
             if video_url:
                 await msg.delete()
-                caption = f"🎞️ *Video Generated*\n\n📝 `{esc(prompt)}`\n⏱ 5 sec \\| 480p\n\n_Powered by SHUVO AI OFFICIAL_"
+                caption = f"🎞️ *Video Generated*\n\n📝 `{esc(prompt)}`\n⏱ 5 sec \\| 480p\n\n_Powered by SHUVO_"
                 await context.bot.send_video(
                     chat_id=update.effective_chat.id,
                     video=video_url, caption=caption,
@@ -551,6 +557,4 @@ async def cmd_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
             elif status == "failed":
                 await msg.edit_text("❌ Video generation failed\\. Try different prompt\\.", parse_mode=ParseMode.MARKDOWN_V2)
             else:
-                await msg.edit_text(f"⏳ Still generating\\. Status: `{esc(status)}`", parse_mode=ParseMode.MARKDOWN_V2)
-        except Exception as e:
-            await msg.edit_text(f"❌ 
+                await msg.edit_text(f"{WAIT} Still generating\\. Status: `{esc(status)}`", parse_mode=ParseMode.MARKD
