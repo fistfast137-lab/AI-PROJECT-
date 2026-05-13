@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-PLAYER2 AI BOT — Telegram Bot
-Powered by Player2.game API
+SHUVO AI OFFICIAL — Telegram Bot
+Powered by SHUVO AI OFFICIAL
 Features: AI Image, Music, Video, Sprite, 3D generation
 """
 
@@ -147,7 +147,7 @@ async def _send_audio_robust(context: ContextTypes.DEFAULT_TYPE,
                               chat_id: int, url: str, caption: str):
     """
     Try send_audio via URL → download & resend → fallback to send_document.
-    Player2 audio URLs sometimes need special handling.
+    SHUVO AI OFFICIAL audio URL handling.
     """
     # Attempt 1: direct URL
     try:
@@ -224,7 +224,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "📦  3D Model Builder \\(GLB\\)\n"
         "✏️  AI Image Editor\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-        "🌐 Powered by [SHUVO AI OFFICIAL)\n\n"
+        "🌐 *Powered by SHUVO AI OFFICIAL*\n\n"
         "⬇️ *Tap a feature to begin\\!*"
     )
 
@@ -333,7 +333,7 @@ def _start_msg():
         "📦  3D Model Builder \\(GLB\\)\n"
         "✏️  AI Image Editor\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-        "🌐 Powered by [Player2\\.game](https://player2\\.game)\n\n"
+        "🌐 *Powered by SHUVO AI OFFICIAL*\n\n"
         "⬇️ *Tap a feature to begin\\!*"
     )
 
@@ -386,7 +386,7 @@ async def cmd_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
             url = result.get("image_url") or result.get("url") or ""
             if url:
                 await msg.delete()
-                caption = f"🌈 *Image Generated*\n\n📝 `{esc(prompt)}`\n\n_Powered by Player2\\.game_"
+                caption = f"🌈 *Image Generated*\n\n📝 `{esc(prompt)}`\n\n_Powered by SHUVO AI OFFICIAL_"
                 await context.bot.send_photo(
                     chat_id=update.effective_chat.id,
                     photo=url, caption=caption,
@@ -426,7 +426,7 @@ async def cmd_music(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode=ParseMode.MARKDOWN_V2
     )
 
-    caption = f"🎧 *Music Generated*\n\n📝 `{esc(prompt)}`\n⏱ {duration}s\n\n_Powered by Player2\\.game_"
+    caption = f"🎧 *Music Generated*\n\n📝 `{esc(prompt)}`\n⏱ {duration}s\n\n_Powered by SHUVO AI OFFICIAL_"
 
     async with httpx.AsyncClient() as client:
         session_id = await mcp_init(client)
@@ -491,7 +491,7 @@ async def cmd_music(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
             elif status == "timeout":
                 await msg.edit_text(
-                    "⏳ Timed out\\. Player2 servers might be busy — try again\\!",
+                    "⏳ Timed out\\. SHUVO AI servers might be busy — try again\\!",
                     parse_mode=ParseMode.MARKDOWN_V2
                 )
             else:
@@ -542,7 +542,7 @@ async def cmd_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
             video_url = done.get("video_url") or done.get("url") or done.get("output_url") or ""
             if video_url:
                 await msg.delete()
-                caption = f"🎞️ *Video Generated*\n\n📝 `{esc(prompt)}`\n⏱ 5 sec \\| 480p\n\n_Powered by Player2\\.game_"
+                caption = f"🎞️ *Video Generated*\n\n📝 `{esc(prompt)}`\n⏱ 5 sec \\| 480p\n\n_Powered by SHUVO AI OFFICIAL_"
                 await context.bot.send_video(
                     chat_id=update.effective_chat.id,
                     video=video_url, caption=caption,
@@ -553,243 +553,4 @@ async def cmd_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 await msg.edit_text(f"⏳ Still generating\\. Status: `{esc(status)}`", parse_mode=ParseMode.MARKDOWN_V2)
         except Exception as e:
-            await msg.edit_text(f"❌ Error: `{esc(str(e)[:200])}`", parse_mode=ParseMode.MARKDOWN_V2)
-
-
-# ─────────────────────────────────────────────
-# /sprite
-# ─────────────────────────────────────────────
-async def cmd_sprite(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    prompt = " ".join(context.args).strip()
-    if not prompt:
-        await update.message.reply_text(
-            "❌ Prompt দাও\\!\nExample: `/sprite pixel art warrior character`",
-            parse_mode=ParseMode.MARKDOWN_V2,
-        )
-        return
-
-    msg = await update.message.reply_text("👾 Generating sprite\\.\\.\\. 1\\-2 minutes", parse_mode=ParseMode.MARKDOWN_V2)
-
-    async with httpx.AsyncClient() as client:
-        session_id = await mcp_init(client)
-        if not session_id:
-            await msg.edit_text("❌ API connection failed\\.", parse_mode=ParseMode.MARKDOWN_V2)
-            return
-
-        try:
-            result = await mcp_call(client, session_id, "generate_sprite",
-                                    {"prompt": prompt, "name": prompt[:40]})
-            job_id = result.get("job_id") or result.get("id") or result.get("task_id") or ""
-            if not job_id:
-                err = result.get("error") or str(result)
-                await msg.edit_text(f"❌ Failed: `{esc(str(err)[:200])}`", parse_mode=ParseMode.MARKDOWN_V2)
-                return
-
-            await msg.edit_text("👾 Sprite generating\\.\\.\\. Please wait\\.", parse_mode=ParseMode.MARKDOWN_V2)
-            done = await mcp_poll_job(client, session_id, "check_sprite_job", job_id, interval=10, max_wait=180)
-
-            status = done.get("status", "")
-            img_url = (done.get("spritesheet_url") or done.get("gif_url")
-                       or done.get("image_url") or done.get("url") or "")
-            if img_url:
-                await msg.delete()
-                caption = f"👾 *Sprite Generated*\n\n📝 `{esc(prompt)}`\n\n_Powered by Player2\\.game_"
-                await context.bot.send_photo(
-                    chat_id=update.effective_chat.id,
-                    photo=img_url, caption=caption,
-                    parse_mode=ParseMode.MARKDOWN_V2,
-                )
-            elif status == "failed":
-                await msg.edit_text("❌ Sprite generation failed\\.", parse_mode=ParseMode.MARKDOWN_V2)
-            else:
-                await msg.edit_text(f"⏳ Status: `{esc(status)}`", parse_mode=ParseMode.MARKDOWN_V2)
-        except Exception as e:
-            await msg.edit_text(f"❌ Error: `{esc(str(e)[:200])}`", parse_mode=ParseMode.MARKDOWN_V2)
-
-
-# ─────────────────────────────────────────────
-# /model (3D from text)
-# ─────────────────────────────────────────────
-async def cmd_model(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    prompt = " ".join(context.args).strip()
-    if not prompt:
-        await update.message.reply_text(
-            "❌ Prompt দাও\\!\nExample: `/model a medieval castle tower`",
-            parse_mode=ParseMode.MARKDOWN_V2,
-        )
-        return
-
-    msg = await update.message.reply_text("🧊 Generating 3D model\\.\\.\\. 1\\-5 minutes", parse_mode=ParseMode.MARKDOWN_V2)
-
-    async with httpx.AsyncClient() as client:
-        session_id = await mcp_init(client)
-        if not session_id:
-            await msg.edit_text("❌ API connection failed\\.", parse_mode=ParseMode.MARKDOWN_V2)
-            return
-
-        try:
-            result = await mcp_call(client, session_id, "generate_3d_model_from_text", {"prompt": prompt})
-            job_id = result.get("job_id") or result.get("id") or result.get("task_id") or ""
-            if not job_id:
-                err = result.get("error") or str(result)
-                await msg.edit_text(f"❌ Failed: `{esc(str(err)[:200])}`", parse_mode=ParseMode.MARKDOWN_V2)
-                return
-
-            await msg.edit_text("🧊 3D Model generating\\.\\.\\. Please wait\\.", parse_mode=ParseMode.MARKDOWN_V2)
-            done = await mcp_poll_job(client, session_id, "check_3d_model_job", job_id, interval=15, max_wait=360)
-
-            status = done.get("status", "")
-            glb_url = done.get("glb_url") or done.get("url") or done.get("output_url") or ""
-            if glb_url:
-                await msg.delete()
-                caption = f"🧊 *3D Model Generated \\(GLB\\)*\n\n📝 `{esc(prompt)}`\n\n_Powered by Player2\\.game_"
-                await context.bot.send_document(
-                    chat_id=update.effective_chat.id,
-                    document=glb_url, caption=caption,
-                    parse_mode=ParseMode.MARKDOWN_V2,
-                )
-            elif status == "failed":
-                await msg.edit_text("❌ 3D model generation failed\\.", parse_mode=ParseMode.MARKDOWN_V2)
-            else:
-                await msg.edit_text(f"⏳ Status: `{esc(status)}`", parse_mode=ParseMode.MARKDOWN_V2)
-        except Exception as e:
-            await msg.edit_text(f"❌ Error: `{esc(str(e)[:200])}`", parse_mode=ParseMode.MARKDOWN_V2)
-
-
-# ─────────────────────────────────────────────
-# /edit (reply to image)
-# ─────────────────────────────────────────────
-async def cmd_edit(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    prompt = " ".join(context.args).strip()
-    reply = update.message.reply_to_message
-
-    if not prompt:
-        await update.message.reply_text(
-            "❌ একটা ছবিতে reply করো এবং prompt দাও\\!\nExample: reply to photo → `/edit make the sky purple`",
-            parse_mode=ParseMode.MARKDOWN_V2,
-        )
-        return
-
-    image_url = None
-    if reply and reply.photo:
-        photo = reply.photo[-1]
-        file = await context.bot.get_file(photo.file_id)
-        image_url = file.file_path
-    elif reply and reply.document and reply.document.mime_type and reply.document.mime_type.startswith("image"):
-        file = await context.bot.get_file(reply.document.file_id)
-        image_url = file.file_path
-
-    if not image_url:
-        await update.message.reply_text(
-            "❌ একটা ছবিতে reply করো\\!",
-            parse_mode=ParseMode.MARKDOWN_V2,
-        )
-        return
-
-    msg = await update.message.reply_text("🖌️ Editing image\\.\\.\\.", parse_mode=ParseMode.MARKDOWN_V2)
-
-    async with httpx.AsyncClient() as client:
-        session_id = await mcp_init(client)
-        if not session_id:
-            await msg.edit_text("❌ API connection failed\\.", parse_mode=ParseMode.MARKDOWN_V2)
-            return
-
-        try:
-            result = await mcp_call(client, session_id, "edit_image",
-                                    {"prompt": prompt, "image_url": image_url})
-            url = result.get("image_url") or result.get("url") or ""
-            if url:
-                await msg.delete()
-                caption = f"🖌️ *Image Edited*\n\n📝 `{esc(prompt)}`\n\n_Powered by Player2\\.game_"
-                await context.bot.send_photo(
-                    chat_id=update.effective_chat.id,
-                    photo=url, caption=caption,
-                    parse_mode=ParseMode.MARKDOWN_V2,
-                )
-            else:
-                err = result.get("error") or result.get("raw") or str(result)
-                await msg.edit_text(f"❌ Failed: `{esc(str(err)[:200])}`", parse_mode=ParseMode.MARKDOWN_V2)
-        except Exception as e:
-            await msg.edit_text(f"❌ Error: `{esc(str(e)[:200])}`", parse_mode=ParseMode.MARKDOWN_V2)
-
-
-# ─────────────────────────────────────────────
-# /balance
-# ─────────────────────────────────────────────
-async def cmd_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = await update.message.reply_text("💰 Checking balance\\.\\.\\.", parse_mode=ParseMode.MARKDOWN_V2)
-    async with httpx.AsyncClient() as client:
-        session_id = await mcp_init(client)
-        if not session_id:
-            await msg.edit_text("❌ API connection failed\\.", parse_mode=ParseMode.MARKDOWN_V2)
-            return
-        try:
-            result = await mcp_call(client, session_id, "list_assets", {"limit": 1, "public_only": False})
-            await msg.edit_text(
-                "💰 *Player2 Account Active*\n\nAPI connected successfully\\!\n\n"
-                "💡 *Cost per generation:*\n"
-                "• 🌈 Image: 3 Joules\n"
-                "• 👾 Sprite: 3 Joules\n"
-                "• 🖌️ Edit: 10 Joules\n"
-                "• 🎞️ Video: 50 Joules\n"
-                "• 🎧 Music: 140 Joules/min\n"
-                "• 🧊 3D Model: 190 Joules\n\n"
-                "_Powered by [Player2\\.game](https://player2\\.game)_",
-                parse_mode=ParseMode.MARKDOWN_V2,
-            )
-        except Exception as e:
-            await msg.edit_text(f"❌ Error: `{esc(str(e)[:200])}`", parse_mode=ParseMode.MARKDOWN_V2)
-
-
-# ─────────────────────────────────────────────
-# NOOP — silently ignore photo / video / audio
-# ─────────────────────────────────────────────
-async def noop(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Do nothing for non-command media messages."""
-    pass
-
-
-# ─────────────────────────────────────────────
-# Unknown command
-# ─────────────────────────────────────────────
-async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "❓ Unknown command\\. Use /help to see all commands\\.",
-        parse_mode=ParseMode.MARKDOWN_V2,
-    )
-
-
-# ─────────────────────────────────────────────
-# MAIN
-# ─────────────────────────────────────────────
-def main():
-    print("🎮 PLAYER2 AI BOT starting...")
-    app = Application.builder().token(BOT_TOKEN).build()
-
-    app.add_handler(CommandHandler("start",   cmd_start))
-    app.add_handler(CommandHandler("help",    cmd_help))
-    app.add_handler(CommandHandler("image",   cmd_image))
-    app.add_handler(CommandHandler("music",   cmd_music))
-    app.add_handler(CommandHandler("video",   cmd_video))
-    app.add_handler(CommandHandler("sprite",  cmd_sprite))
-    app.add_handler(CommandHandler("model",   cmd_model))
-    app.add_handler(CommandHandler("edit",    cmd_edit))
-    app.add_handler(CommandHandler("balance", cmd_balance))
-    app.add_handler(CallbackQueryHandler(cb_handler))
-
-    # Silently ignore media without commands
-    app.add_handler(MessageHandler(
-        (filters.PHOTO | filters.VIDEO | filters.AUDIO | filters.VOICE)
-        & ~filters.COMMAND,
-        noop
-    ))
-
-    # Unknown commands only (not plain text)
-    app.add_handler(MessageHandler(filters.COMMAND, unknown))
-
-    print("✅ Bot running! Press Ctrl+C to stop.")
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
-
-
-if __name__ == "__main__":
-    main()
+            await msg.edit_text(f"❌ 
