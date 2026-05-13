@@ -224,7 +224,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "📦  3D Model Builder \\(GLB\\)\n"
         "✏️  AI Image Editor\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-        "🌐 Powered by [Player2\\.game](https://player2\\.game)\n\n"
+        "🌐 Powered by [SHUVO AI OFFICIAL)\n\n"
         "⬇️ *Tap a feature to begin\\!*"
     )
 
